@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Привет, {{ username }}!</h2>
-<p>Добро пожаловать в вашу панель управления.</p>
+<h2>Добро пожаловать, {{ username }}!</h2>
+<form action="{{ url_for('dashboard') }}" method="post" enctype="multipart/form-data">
+    <label for="file">Выберите музыкальный файл:</label>
+    <input type="file" name="file" id="file" accept=".mp3,.wav,.flac" required>
+    <button type="submit">Загрузить</button>
+</form>
+
 {% endblock %}
