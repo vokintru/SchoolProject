@@ -54,6 +54,43 @@ def extract_metadata(filepath, file_ext):
         return None, None
 
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash('Пользователь с таким email уже существует.', 'danger')
+            return redirect(url_for('register'))
+
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        user = User(username=username, email=email, password_hash=hashed_password)
+        db.session.add(user)
+        db.session.commit()
+        flash('Регистрация успешна! Теперь войдите в систему.', 'success')
+        return redirect(url_for('login'))
+
+    return render_template('register.html', title='Регистрация')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        user = User.query.filter_by(email=email).first()
+        if user and bcrypt.check_password_hash(user.password_hash, password):
+            login_user(user)
+            flash('Вы вошли в систему!', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Неверный email или пароль', 'danger')
+    return render_template('login.html', title='Вход')
+
+
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
@@ -89,7 +126,9 @@ def dashboard():
         flash('Файл успешно загружен!', 'success')
         return redirect(url_for('dashboard'))
 
-    return render_template('dashboard.html', title='Панель управления', username=current_user.username)
+    tracks = Music.query.filter_by(user_id=current_user.id).all()
+    print()
+    return render_template('dashboard.html', tracks=tracks)
 
 
 @app.route('/logout')

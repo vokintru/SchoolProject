@@ -1,11 +1,225 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Музыкальный Плеер</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body {
+            background-color: #121212;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .player-container {
+            width: 90%;
+            max-width: 500px;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        .track-list {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        .track-list li {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #252525;
+            margin: 5px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .track-list li:hover {
+            background: #333;
+        }
+        .track-cover {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            margin-right: 10px;
+        }
+        .track-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .track-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .track-author {
+            font-size: 12px;
+            color: #bbb;
+        }
+        .player-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .player-controls button {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            margin: 0 15px;
+        }
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            margin-top: 10px;
+            position: relative;
+            cursor: pointer;
+        }
+        .progress-bar {
+            width: 0;
+            height: 6px;
+            background: #1db954;
+            border-radius: 3px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-{% block content %}
-<h2>Добро пожаловать, {{ username }}!</h2>
-<form action="{{ url_for('dashboard') }}" method="post" enctype="multipart/form-data">
-    <label for="file">Выберите музыкальный файл:</label>
-    <input type="file" name="file" id="file" accept=".mp3,.wav,.flac" required>
-    <button type="submit">Загрузить</button>
-</form>
+        .modal-content {
+            background-color: #222;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
 
-{% endblock %}
+        .close {
+            color: white;
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+    <h2>Музыкальный плеер</h2>
+    <button id="uploadBtn">Загрузить музыку</button>
+    <ul class="track-list" id="trackList">
+        {% for track in tracks %}
+        <li data-src="{{ track.file_path }}">
+            <img src="{{ track.cover_path }}" class="track-cover" alt="Обложка">
+            <div class="track-info">
+                <span class="track-title">{{ track.track_title or 'Неизвестный трек' }}</span>
+                <span class="track-author">{{ track.track_author or 'Неизвестный исполнитель' }}</span>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    <div class="player-controls">
+        <button id="prev"><i class="fa fa-step-backward"></i></button>
+        <button id="playPause"><i class="fa fa-play"></i></button>
+        <button id="next"><i class="fa fa-step-forward"></i></button>
+    </div>
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+</div>
+
+<div id="uploadModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeModal">&times;</span>
+        <h2>Загрузка музыки</h2>
+         <form action="{{ url_for('dashboard') }}" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" id="file" accept=".mp3,.wav,.flac" required>
+            <button type="submit">Загрузить</button>
+        </form>
+    </div>
+</div>
+
+<audio id="audio"></audio>
+<script>
+    const trackList = document.querySelectorAll('.track-list li');
+    const audio = document.getElementById('audio');
+    const playPauseBtn = document.getElementById('playPause');
+    const progressBar = document.getElementById('progressBar');
+    const progressContainer = document.getElementById('progressContainer');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const uploadModal = document.getElementById('uploadModal');
+    const closeModal = document.getElementById('closeModal');
+    let currentTrackIndex = 0;
+
+    function loadTrack(index) {
+        const track = trackList[index];
+        audio.src = track.getAttribute('data-src');
+    }
+
+    playPauseBtn.addEventListener('click', () => {
+        if (audio.paused) {
+            audio.play();
+            playPauseBtn.innerHTML = '<i class="fa fa-pause"></i>';
+        } else {
+            audio.pause();
+            playPauseBtn.innerHTML = '<i class="fa fa-play"></i>';
+        }
+    });
+
+    trackList.forEach((track, index) => {
+        track.addEventListener('click', () => {
+            currentTrackIndex = index;
+            loadTrack(index);
+            audio.play();
+            playPauseBtn.innerHTML = '<i class="fa fa-pause"></i>';
+        });
+    });
+
+    audio.addEventListener('timeupdate', () => {
+        const progressPercent = (audio.currentTime / audio.duration) * 100;
+        progressBar.style.width = `${progressPercent}%`;
+    });
+
+    progressContainer.addEventListener('click', (e) => {
+        const width = progressContainer.clientWidth;
+        const clickX = e.offsetX;
+        const duration = audio.duration;
+        audio.currentTime = (clickX / width) * duration;
+    });
+
+    uploadBtn.addEventListener('click', () => {
+        uploadModal.style.display = 'block';
+    });
+
+    closeModal.addEventListener('click', () => {
+        uploadModal.style.display = 'none';
+    });
+
+    window.onclick = (event) => {
+        if (event.target == uploadModal) {
+            uploadModal.style.display = 'none';
+        }
+    };
+
+    loadTrack(currentTrackIndex);
+</script>
+</body>
+</html>
