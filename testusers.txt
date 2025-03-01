@@ -1,0 +1,3 @@
+тестовые юзеры:
+testuser1@email.com - testuser1
+testuser2@email.com - testuser2
