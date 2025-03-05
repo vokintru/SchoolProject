@@ -14,16 +14,16 @@ document.addEventListener("DOMContentLoaded", function () {
     function loadTrack(index) {
         const track = trackList[index];
         audio.src = track.getAttribute('data-src');
+        audio.load();  // Обновляем источник аудио
+        audio.play();  // Автоматически воспроизводим
     }
 
     function updateTrackIndicator() {
         trackList.forEach((track, index) => {
             if (index === currentTrackIndex) {
                 track.classList.add("playing");
-                track.querySelector(".track-icon").innerHTML = '<i class="fa fa-pause"></i>';
             } else {
                 track.classList.remove("playing");
-                track.querySelector(".track-icon").innerHTML = '<i class="fa fa-play"></i>';
             }
         });
     }
@@ -39,6 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
         updateTrackIndicator();
     });
 
+    // Обработчик для клика на трек
     trackList.forEach((track, index) => {
         track.addEventListener('click', (event) => {
             if (event.target.closest('.edit-button')) {
@@ -56,7 +57,6 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
                 currentTrackIndex = index;
                 loadTrack(index);
-                audio.play();
                 playPauseBtn.innerHTML = '<i class="fa fa-pause"></i>';
             }
             updateTrackIndicator();
@@ -71,6 +71,31 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // Обработчик для переключения на следующий трек
+    document.getElementById("next").addEventListener("click", () => {
+        if (currentTrackIndex < trackList.length - 1) {
+            currentTrackIndex++;
+            loadTrack(currentTrackIndex);
+        }
+    });
+
+    // Обработчик для переключения на предыдущий трек
+    document.getElementById("prev").addEventListener("click", () => {
+        if (currentTrackIndex > 0) {
+            currentTrackIndex--;
+            loadTrack(currentTrackIndex);
+        }
+    });
+
+    // Переключение на следующий трек после окончания текущего
+    audio.addEventListener('ended', () => {
+        if (currentTrackIndex < trackList.length - 1) {
+            currentTrackIndex++;
+            loadTrack(currentTrackIndex);
+        }
+    });
+
+    // Обновление прогресса воспроизведения
     audio.addEventListener('timeupdate', () => {
         const progressPercent = (audio.currentTime / audio.duration) * 100;
         progressBar.style.width = `${progressPercent}%`;
@@ -122,6 +147,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
+    // Инициализация при загрузке страницы
     loadTrack(currentTrackIndex);
 
     // Добавляем обработку событий клавиш
