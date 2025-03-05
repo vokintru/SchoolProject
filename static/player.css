@@ -1,0 +1,219 @@
+body {
+    background-color: #121212;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+}
+.player-container {
+    width: 90%;
+    max-width: 500px;
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    position: relative;
+}
+.track-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 20px;
+}
+.track-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    background: #252525;
+    margin: 5px 0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+.track-list li:hover {
+    background: #333;
+}
+.track-cover {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    margin-right: 10px;
+}
+.track-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.track-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+}
+.track-author {
+    font-size: 12px;
+    color: #bbb;
+}
+.player-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+}
+.player-controls button {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    margin: 0 15px;
+}
+.progress-container {
+    width: 100%;
+    height: 6px;
+    background: #333;
+    border-radius: 3px;
+    margin-top: 10px;
+    position: relative;
+    cursor: pointer;
+}
+.progress-bar {
+    width: 0;
+    height: 6px;
+    background: #1db954;
+    border-radius: 3px;
+}
+.volume-container {
+    bottom: -20px;
+    right: 0;
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    margin-right: 10px;
+    margin-left: 75%;
+}
+.volume-icon {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    margin-right: 5px;
+}
+.volume-slider {
+    width: 100px;
+    height: 6px;
+    background: #333;
+    border-radius: 3px;
+    position: relative;
+}
+.volume-bar {
+    width: 50%;
+    height: 6px;
+    background: #1db954;
+    border-radius: 3px;
+}
+.edit-button {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 10px;
+}
+.edit-button i {
+    font-size: 18px;
+}
+.track-edit-container {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+}
+.track-edit-container img {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+}
+.track-edit-container .track-info {
+    margin-left: 10px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #222;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.close {
+    color: white;
+    float: right;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+.draggable {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: #1db954;
+    border-radius: 50%;
+    cursor: pointer;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#editTrackModal .modal-content {
+    background-color: #222;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+}
+
+#editTrackModal input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#editTrackModal button {
+    background-color: #1db954;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#editTrackModal button:hover {
+    background-color: #1a9e46;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}

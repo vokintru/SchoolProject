@@ -1,17 +1,18 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.utils import secure_filename
 from mutagen.easyid3 import EasyID3
 from mutagen.flac import FLAC
 from mutagen.wavpack import WavPack
-from database import db, User, Music
+from database import db, User, Music, global_init, create_session
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SECRET_KEY'] = 'supersecretkey'
-app.config['UPLOAD_FOLDER'] = 'static/music/'
+app.config['UPLOAD_MUSIC_FOLDER'] = 'static/music/'
+app.config['UPLOAD_COVER_FOLDER'] = 'static/covers/'
 
 ALLOWED_EXTENSIONS = {'mp3', 'wav', 'flac'}
 MAX_FILE_SIZE = {
@@ -32,8 +33,12 @@ def load_user(user_id):
         return session.get(User, int(user_id))
 
 
-def allowed_file(filename):
+def allowed_file_music(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def allowed_file_cover(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ['jpg', 'jpeg', 'png']
+
 
 
 def extract_metadata(filepath, file_ext):
@@ -75,7 +80,6 @@ def register():
 
     return render_template('register.html', title='Регистрация')
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -91,6 +95,39 @@ def login():
     return render_template('login.html', title='Вход')
 
 
+@app.route('/edit_track/<int:track_id>', methods=['POST'])
+def edit_track(track_id):
+    db_sess = create_session()
+    track = db_sess.query(Music).filter(Music.id == track_id).first()
+    if not track or track.user_id != current_user.id:
+        return jsonify({"success": False, "message": "Трек не найден или у вас нет доступа к этому треку"}), 403
+
+    # Получаем данные из формы
+    track_title = request.form.get('trackTitle')
+    track_author = request.form.get('trackAuthor')
+    track_cover = request.files.get('trackCover')
+
+    # Обновляем данные трека
+    if track_title != "Неизвестный трек":
+        track.track_title = track_title
+    if track_author != "Неизвестный исполнитель":
+        track.track_author = track_author
+
+    if track_cover and allowed_file_cover(track_cover.filename):
+        user_folder = os.path.join(app.config['UPLOAD_COVER_FOLDER'], str(current_user.id))
+        if not os.path.exists(user_folder):
+            os.makedirs(user_folder)
+
+        filename = secure_filename(track_cover.filename)
+        cover_path = os.path.join(user_folder, filename)
+        track_cover.save(cover_path)
+        track.cover_path = cover_path
+
+    db_sess.commit()
+    db_sess.close()
+
+    return jsonify({"success": True, "message": "Трек успешно обновлен"})
+
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
@@ -99,7 +136,7 @@ def dashboard():
             flash('Файл не выбран', 'danger')
             return redirect(url_for('dashboard'))
         file = request.files['file']
-        if file.filename == '' or not allowed_file(file.filename):
+        if file.filename == '' or not allowed_file_music(file.filename):
             flash('Неверный формат файла', 'danger')
             return redirect(url_for('dashboard'))
         file_ext = file.filename.rsplit('.', 1)[1].lower()
@@ -114,7 +151,7 @@ def dashboard():
         new_track = Music(user_id=current_user.id, file_path='')
         db.session.add(new_track)
         db.session.commit()
-        user_folder = os.path.join(app.config['UPLOAD_FOLDER'], str(current_user.id))
+        user_folder = os.path.join(app.config['UPLOAD_MUSIC_FOLDER'], str(current_user.id))
         os.makedirs(user_folder, exist_ok=True)
         file_path = os.path.join(user_folder, f"{new_track.id}.{file_ext}")
         file.save(file_path)
@@ -127,7 +164,6 @@ def dashboard():
         return redirect(url_for('dashboard'))
 
     tracks = Music.query.filter_by(user_id=current_user.id).all()
-    print()
     return render_template('dashboard.html', tracks=tracks)
 
 
@@ -140,6 +176,5 @@ def logout():
 
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
+    global_init("instance/users.db")
     app.run(debug=True)
