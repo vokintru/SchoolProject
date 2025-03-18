@@ -58,6 +58,9 @@ def extract_metadata(filepath, file_ext):
     except Exception:
         return None, None
 
+@app.route('/')
+def index():
+    return redirect(url_for('dashboard'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -133,7 +136,7 @@ def edit_track(track_id):
 def dashboard():
     if request.method == 'POST':
         if 'file' not in request.files:
-            flash('Файл не выбран', 'danger')
+            flash(' Файл не выбран', 'danger')
             return redirect(url_for('dashboard'))
         file = request.files['file']
         if file.filename == '' or not allowed_file_music(file.filename):
@@ -177,4 +180,4 @@ def logout():
 
 if __name__ == '__main__':
     global_init("instance/users.db")
-    app.run(debug=True)
+    app.run("0.0.0.0", debug=True)

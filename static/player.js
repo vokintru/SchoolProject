@@ -14,8 +14,8 @@ document.addEventListener("DOMContentLoaded", function () {
     function loadTrack(index) {
         const track = trackList[index];
         audio.src = track.getAttribute('data-src');
-        audio.load();  // Обновляем источник аудио
-        audio.play();  // Автоматически воспроизводим
+        audio.load();
+        audio.play();
     }
 
     function updateTrackIndicator() {
@@ -39,7 +39,6 @@ document.addEventListener("DOMContentLoaded", function () {
         updateTrackIndicator();
     });
 
-    // Обработчик для клика на трек
     trackList.forEach((track, index) => {
         track.addEventListener('click', (event) => {
             if (event.target.closest('.edit-button')) {
@@ -68,10 +67,25 @@ document.addEventListener("DOMContentLoaded", function () {
             event.stopPropagation();
             let trackId = this.dataset.trackId;
             console.log("Редактирование трека с ID:", trackId);
+
+            let modal = document.getElementById("editTrackModal");
+            modal.querySelector("#trackId").value = trackId;
+
+            modal.style.display = "flex";
         });
     });
 
-    // Обработчик для переключения на следующий трек
+    document.getElementById("closeEditModal").addEventListener("click", function () {
+        document.getElementById("editTrackModal").style.display = "none";
+    });
+
+    window.addEventListener("click", function (event) {
+        let modal = document.getElementById("editTrackModal");
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+
     document.getElementById("next").addEventListener("click", () => {
         if (currentTrackIndex < trackList.length - 1) {
             currentTrackIndex++;
@@ -79,7 +93,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Обработчик для переключения на предыдущий трек
     document.getElementById("prev").addEventListener("click", () => {
         if (currentTrackIndex > 0) {
             currentTrackIndex--;
@@ -87,7 +100,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Переключение на следующий трек после окончания текущего
     audio.addEventListener('ended', () => {
         if (currentTrackIndex < trackList.length - 1) {
             currentTrackIndex++;
@@ -95,7 +107,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Обновление прогресса воспроизведения
     audio.addEventListener('timeupdate', () => {
         const progressPercent = (audio.currentTime / audio.duration) * 100;
         progressBar.style.width = `${progressPercent}%`;
@@ -147,13 +158,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    // Инициализация при загрузке страницы
     loadTrack(currentTrackIndex);
 
-    // Добавляем обработку событий клавиш
     document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') { // При нажатии пробела
-            e.preventDefault(); // Предотвратить стандартное действие
+        if (e.code === 'Space') {
+            e.preventDefault();
             if (audio.paused) {
                 audio.play();
                 playPauseBtn.innerHTML = '<i class="fa fa-pause"></i>';
