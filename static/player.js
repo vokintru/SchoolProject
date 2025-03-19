@@ -44,6 +44,9 @@ document.addEventListener("DOMContentLoaded", function () {
             if (event.target.closest('.edit-button')) {
                 return;
             }
+            if (event.target.closest('.delete-button')) {
+                return;
+            }
 
             if (currentTrackIndex === index) {
                 if (audio.paused) {
@@ -70,8 +73,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             let modal = document.getElementById("editTrackModal");
             modal.querySelector("#trackId").value = trackId;
-
             modal.style.display = "flex";
+
+            let form = modal.querySelector("form");
+            form.action = "/edit_track/" + trackId;
         });
     });
 
@@ -81,6 +86,34 @@ document.addEventListener("DOMContentLoaded", function () {
 
     window.addEventListener("click", function (event) {
         let modal = document.getElementById("editTrackModal");
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+
+    document.querySelectorAll(".delete-button").forEach(button => {
+        button.addEventListener("click", function (event) {
+            event.stopPropagation();
+            let trackId = this.dataset.trackId;
+            console.log("Удаление трека с ID:", trackId);
+
+            let modal = document.getElementById("deleteTrackModal");
+            modal.querySelector("#deleteTrackModal > div > div > a").href = "/api/delete/" + trackId;
+
+            modal.style.display = "flex";
+        });
+    });
+
+    document.getElementById("closeDeleteModal").addEventListener("click", function () {
+        document.getElementById("deleteTrackModal").style.display = "none";
+    });
+
+    document.getElementById("closeDeleteModalBtn").addEventListener("click", function () {
+        document.getElementById("deleteTrackModal").style.display = "none";
+    });
+
+    window.addEventListener("click", function (event) {
+        let modal = document.getElementById("deleteTrackModal");
         if (event.target === modal) {
             modal.style.display = "none";
         }
@@ -110,6 +143,48 @@ document.addEventListener("DOMContentLoaded", function () {
     audio.addEventListener('timeupdate', () => {
         const progressPercent = (audio.currentTime / audio.duration) * 100;
         progressBar.style.width = `${progressPercent}%`;
+    });
+
+    function updateProgress(e) {
+        const width = progressContainer.clientWidth;
+        const offsetX = e.offsetX || e.changedTouches[0].clientX - progressContainer.getBoundingClientRect().left;
+        const newTime = (offsetX / width) * audio.duration;
+        audio.currentTime = newTime;
+        progressBar.style.width = `${(newTime / audio.duration) * 100}%`;
+    }
+
+    progressContainer.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        audio.pause();
+        updateProgress(e);
+    });
+
+    progressContainer.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            updateProgress(e);
+        }
+    });
+
+    progressContainer.addEventListener('mouseup', () => {
+        isDragging = false;
+        audio.play();
+    });
+
+    progressContainer.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        audio.pause();
+        updateProgress(e);
+    });
+
+    progressContainer.addEventListener('touchmove', (e) => {
+        if (isDragging) {
+            updateProgress(e);
+        }
+    });
+
+    progressContainer.addEventListener('touchend', () => {
+        isDragging = false;
+        audio.play();
     });
 
     audio.addEventListener("pause", updateTrackIndicator);
@@ -144,6 +219,56 @@ document.addEventListener("DOMContentLoaded", function () {
         localStorage.setItem('volume', audio.volume);
     });
 
+    let isDragging = false;
+
+    // Функция для обновления громкости
+    function updateVolume(e) {
+        const width = volumeSlider.clientWidth;
+        const offsetX = e.offsetX || e.changedTouches[0].clientX - volumeSlider.getBoundingClientRect().left;
+        const volume = Math.min(Math.max(offsetX / width, 0), 1); // Ограничение от 0 до 1
+        audio.volume = volume;
+        volumeBar.style.width = `${volume * 100}%`;
+        localStorage.setItem('volume', audio.volume);
+    }
+
+    // Начало перетаскивания
+    volumeSlider.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        updateVolume(e);
+    });
+
+    // Перетаскивание ползунка
+    volumeSlider.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            updateVolume(e);
+        }
+    });
+
+    // Окончание перетаскивания
+    volumeSlider.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+
+    // Для мобильных устройств
+    volumeSlider.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        updateVolume(e);
+    });
+
+    volumeSlider.addEventListener('touchmove', (e) => {
+        if (isDragging) {
+            updateVolume(e);
+        }
+    });
+
+    volumeSlider.addEventListener('touchend', () => {
+        isDragging = false;
+    });
+
+    // Обработка кликов (для инициализации громкости)
+    volumeSlider.addEventListener('click', updateVolume);
+
+
     uploadBtn.addEventListener('click', () => {
         uploadModal.style.display = 'block';
     });
@@ -174,3 +299,50 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
+function showNotification(statusCode) {
+const notification = document.getElementById('notification');
+const message = document.getElementById('notificationMessage');
+const closeBtn = document.getElementById('closeBtn');
+
+if (!statusCode) return;  // Если переменная пуста, не показывать уведомление
+
+// Определяем тип уведомления по коду статуса
+switch (statusCode) {
+    case 200:
+        notification.classList.add('success');
+        message.textContent = 'Успешно!';
+        break;
+    case 404:
+        notification.classList.add('error');
+        message.textContent = 'Трек не найден!';
+        break;
+    case 403:
+        notification.classList.add('error');
+        message.textContent = 'Нет доступа!';
+        break;
+    default:
+        return;
+}
+
+// Показать уведомление с анимацией
+notification.classList.add('show');
+
+// Закрытие уведомления через 3 секунды
+setTimeout(() => {
+    notification.classList.add('exit');
+    setTimeout(() => {
+        notification.classList.remove('show', 'exit');
+        notification.classList.remove('success', 'error');
+    }, 500); // Время для завершения анимации закрытия
+}, 3000);
+
+// Закрытие при клике на уведомление
+closeBtn.addEventListener('click', () => {
+    notification.classList.add('exit');
+    setTimeout(() => {
+        notification.classList.remove('show', 'exit');
+        notification.classList.remove('success', 'error');
+    }, 500);
+});
+}

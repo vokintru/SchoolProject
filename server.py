@@ -111,9 +111,9 @@ def edit_track(track_id):
     track_cover = request.files.get('trackCover')
 
     # Обновляем данные трека
-    if track_title != "Неизвестный трек":
+    if track_title != "":
         track.track_title = track_title
-    if track_author != "Неизвестный исполнитель":
+    if track_author != "":
         track.track_author = track_author
 
     if track_cover and allowed_file_cover(track_cover.filename):
@@ -129,11 +129,12 @@ def edit_track(track_id):
     db_sess.commit()
     db_sess.close()
 
-    return jsonify({"success": True, "message": "Трек успешно обновлен"})
+    return redirect("/dashboard?code=200")
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
+    code = request.args.get('code')
     if request.method == 'POST':
         if 'file' not in request.files:
             flash(' Файл не выбран', 'danger')
@@ -164,10 +165,24 @@ def dashboard():
         new_track.track_author = artist
         db.session.commit()
         flash('Файл успешно загружен!', 'success')
-        return redirect(url_for('dashboard'))
+        return redirect("/dashboard?code=200")
 
     tracks = Music.query.filter_by(user_id=current_user.id).all()
-    return render_template('dashboard.html', tracks=tracks)
+    return render_template('dashboard.html', tracks=tracks, code=code)
+
+@app.route('/api/delete/<track_id>')
+@login_required
+def api_delete(track_id):
+    track = Music.query.filter_by(id=track_id).first()
+    if track and current_user.id == track.user_id:
+        if os.path.exists(track.file_path.replace("\\", "/")):
+            os.remove(track.file_path.replace("\\", "/"))
+        else:
+            return redirect("/dashboard?code=404")
+        db.session.delete(track)
+        db.session.commit()
+        return redirect("/dashboard?code=200")
+    return redirect("/dashboard?code=403")
 
 
 @app.route('/logout')

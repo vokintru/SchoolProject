@@ -21,7 +21,10 @@
                         <span class="track-author">{{ track.track_author or 'Неизвестный исполнитель' }}</span>
                     </div>
                 </div>
-                <button class="edit-button" data-track-id="{{ track.id }}"><i class="fa fa-pencil"></i></button>
+                <div style="display: flex;">
+                    <button class="edit-button" data-track-id="{{ track.id }}"><i class="fa fa-pencil"></i></button>
+                    <button class="delete-button" data-track-id="{{ track.id }}"><i class="fa fa-trash"></i></button>
+                </div>
             </li>
             {% endfor %}
         </ul>
@@ -39,6 +42,7 @@
                 <div class="volume-bar" id="volumeBar"></div>
             </div>
         </div>
+
     </div>
 
     <div id="uploadModal" class="modal" style="display: none;">
@@ -56,13 +60,13 @@
         <div class="modal-content">
             <span class="close" id="closeEditModal">&times;</span>
             <h2>Редактирование трека</h2>
-            <form id="editTrackForm" method="POST" enctype="multipart/form-data">
+            <form id="editTrackForm" method="POST" enctype="multipart/form-data" action="/edit_track/trackId">
                 <input type="hidden" name="trackId" id="trackId">
                 <label for="trackTitle">Название трека</label>
-                <input type="text" name="trackTitle" id="trackTitle" required>
+                <input type="text" name="trackTitle" id="trackTitle" autocomplete="off">
 
                 <label for="trackAuthor">Автор трека</label>
-                <input type="text" name="trackAuthor" id="trackAuthor" required>
+                <input type="text" name="trackAuthor" id="trackAuthor" autocomplete="off">
 
                 <label for="trackCover">Обложка трека</label>
                 <input type="file" name="trackCover" id="trackCover" accept="image/*">
@@ -72,7 +76,29 @@
         </div>
     </div>
 
-    <audio id="audio"></audio>
+    <div id="deleteTrackModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" id="closeDeleteModal">&times;</span>
+            <h2>Вы уверенны, что хотите удалить трек?</h2>
+            <div>
+                <a href="/api/delete/trackId"><button><i class="fa fa-check"></i></button></a>
+                <button id="closeDeleteModalBtn" style="background: #8b0000;"><i class="fa fa-xmark"></i></button>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', filename='player.js') }}"></script>
+
+    {% if code %}
+        <div class="notification" id="notification">
+            <span id="notificationMessage"></span>
+        </div>
+        <script>
+            const statusCodeFromFlask = {{ code }};
+            showNotification(statusCodeFromFlask);
+        </script>
+    {% endif %}
+
+    <audio id="audio"></audio>
 </body>
 </html>
