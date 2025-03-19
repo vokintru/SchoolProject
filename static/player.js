@@ -221,35 +221,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let isDragging = false;
 
-    // Функция для обновления громкости
     function updateVolume(e) {
         const width = volumeSlider.clientWidth;
         const offsetX = e.offsetX || e.changedTouches[0].clientX - volumeSlider.getBoundingClientRect().left;
-        const volume = Math.min(Math.max(offsetX / width, 0), 1); // Ограничение от 0 до 1
+        const volume = Math.min(Math.max(offsetX / width, 0), 1);
         audio.volume = volume;
         volumeBar.style.width = `${volume * 100}%`;
         localStorage.setItem('volume', audio.volume);
     }
 
-    // Начало перетаскивания
     volumeSlider.addEventListener('mousedown', (e) => {
         isDragging = true;
         updateVolume(e);
     });
 
-    // Перетаскивание ползунка
     volumeSlider.addEventListener('mousemove', (e) => {
         if (isDragging) {
             updateVolume(e);
         }
     });
 
-    // Окончание перетаскивания
     volumeSlider.addEventListener('mouseup', () => {
         isDragging = false;
     });
 
-    // Для мобильных устройств
     volumeSlider.addEventListener('touchstart', (e) => {
         isDragging = true;
         updateVolume(e);
@@ -265,7 +260,6 @@ document.addEventListener("DOMContentLoaded", function () {
         isDragging = false;
     });
 
-    // Обработка кликов (для инициализации громкости)
     volumeSlider.addEventListener('click', updateVolume);
 
 
@@ -305,9 +299,8 @@ const notification = document.getElementById('notification');
 const message = document.getElementById('notificationMessage');
 const closeBtn = document.getElementById('closeBtn');
 
-if (!statusCode) return;  // Если переменная пуста, не показывать уведомление
+if (!statusCode) return;
 
-// Определяем тип уведомления по коду статуса
 switch (statusCode) {
     case 200:
         notification.classList.add('success');
@@ -325,19 +318,16 @@ switch (statusCode) {
         return;
 }
 
-// Показать уведомление с анимацией
 notification.classList.add('show');
 
-// Закрытие уведомления через 3 секунды
 setTimeout(() => {
     notification.classList.add('exit');
     setTimeout(() => {
         notification.classList.remove('show', 'exit');
         notification.classList.remove('success', 'error');
-    }, 500); // Время для завершения анимации закрытия
+    }, 500);
 }, 3000);
 
-// Закрытие при клике на уведомление
 closeBtn.addEventListener('click', () => {
     notification.classList.add('exit');
     setTimeout(() => {
