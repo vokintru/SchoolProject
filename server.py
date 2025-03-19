@@ -179,7 +179,8 @@ def api_delete(track_id):
     if track and current_user.id == track.user_id:
         if os.path.exists(track.file_path.replace("\\", "/")):
             os.remove(track.file_path.replace("\\", "/"))
-            os.remove(track.cover_path.replace("\\", "/"))
+            if track.cover_path != "/static/covers/default.png":
+                os.remove(track.cover_path.replace("\\", "/"))
         else:
             return redirect("/dashboard?code=404")
         db.session.delete(track)
