@@ -22,6 +22,16 @@ document.addEventListener("DOMContentLoaded", function () {
         trackList.forEach((track, index) => {
             if (index === currentTrackIndex) {
                 track.classList.add("playing");
+
+                // Обновляем заголовок страницы
+                const trackTitle = track.querySelector('.track-title').textContent;
+                const trackAuthor = track.querySelector('.track-author').textContent;
+                document.title = `${trackTitle} - ${trackAuthor}`;
+
+                // Обновляем иконку страницы
+                const trackCover = track.querySelector('.track-cover').src;
+                const favicon = document.getElementById('favicon');
+                favicon.href = trackCover;
             } else {
                 track.classList.remove("playing");
             }
@@ -72,14 +82,22 @@ document.addEventListener("DOMContentLoaded", function () {
             let trackId = this.dataset.trackId;
             console.log("Редактирование трека с ID:", trackId);
 
+            let trackElement = this.closest("li");
+            let trackTitle = trackElement.querySelector(".track-title").textContent;
+            let trackAuthor = trackElement.querySelector(".track-author").textContent;
+
             let modal = document.getElementById("editTrackModal");
             modal.querySelector("#trackId").value = trackId;
+            modal.querySelector("#trackTitle").value = trackTitle;
+            modal.querySelector("#trackAuthor").value = trackAuthor;
+
             modal.style.display = "flex";
 
             let form = modal.querySelector("form");
             form.action = "/edit_track/" + trackId;
         });
     });
+
 
     document.getElementById("closeEditModal").addEventListener("click", function () {
         document.getElementById("editTrackModal").style.display = "none";

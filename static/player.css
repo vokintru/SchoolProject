@@ -379,3 +379,12 @@ input[type="file"]::file-selector-button:active {
     text-overflow: ellipsis;
   }
 }
+
+@media (max-width: 600px) {
+  .volume-container {
+    display: none;
+  }
+  .progress-container {
+    margin-bottom: 24px;
+  }
+}
