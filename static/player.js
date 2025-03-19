@@ -65,6 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+
     document.querySelectorAll(".edit-button").forEach(button => {
         button.addEventListener("click", function (event) {
             event.stopPropagation();

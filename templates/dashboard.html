@@ -13,7 +13,7 @@
         <button id="uploadBtn">Загрузить музыку</button>
         <ul class="track-list" id="trackList">
             {% for track in tracks %}
-            <li data-src="{{ track.file_path }}" style="white-space: nowrap;">
+            <li data-src="{{ track.file_path }}" style="white-space: nowrap; display: flex;">
                 <div class="track-edit-container">
                     <img src="{{ track.cover_path }}" class="track-cover" alt="Обложка">
                     <div class="track-info">
@@ -22,7 +22,7 @@
                     </div>
                 </div>
                 <div style="display: flex;">
-                    <button class="edit-button" data-track-id="{{ track.id }}"><i class="fa fa-pencil"></i></button>
+                    <button class="edit-button" data-track-id="{{ track.id }}" ><i class="fa fa-pencil"></i></button>
                     <button class="delete-button" data-track-id="{{ track.id }}"><i class="fa fa-trash"></i></button>
                 </div>
             </li>
