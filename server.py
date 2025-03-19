@@ -121,9 +121,11 @@ def edit_track(track_id):
         if not os.path.exists(user_folder):
             os.makedirs(user_folder)
 
-        filename = secure_filename(track_cover.filename)
+        filename = str(track.id) + "." + secure_filename(track_cover.filename).split(".")[-1]
         cover_path = os.path.join(user_folder, filename)
         track_cover.save(cover_path)
+        if track.cover_path != "/static/covers/default.png":
+            os.remove(track.cover_path.replace("\\", "/"))
         track.cover_path = cover_path
 
     db_sess.commit()
@@ -177,6 +179,7 @@ def api_delete(track_id):
     if track and current_user.id == track.user_id:
         if os.path.exists(track.file_path.replace("\\", "/")):
             os.remove(track.file_path.replace("\\", "/"))
+            os.remove(track.cover_path.replace("\\", "/"))
         else:
             return redirect("/dashboard?code=404")
         db.session.delete(track)
