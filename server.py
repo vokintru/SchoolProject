@@ -17,7 +17,7 @@ app.config['UPLOAD_COVER_FOLDER'] = 'static/covers/'
 ALLOWED_EXTENSIONS = {'mp3', 'wav', 'flac'}
 MAX_FILE_SIZE = {
     'mp3': 10 * 1024 * 1024,
-    'wav': 10 * 1024 * 1024,
+    'wav': 50 * 1024 * 1024,
     'flac': 50 * 1024 * 1024
 }
 
@@ -86,15 +86,15 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
+        username = request.form['username']
         password = request.form['password']
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(username=username).first()
         if user and bcrypt.check_password_hash(user.password_hash, password):
             login_user(user)
             flash('Вы вошли в систему!', 'success')
             return redirect(url_for('dashboard'))
         else:
-            flash('Неверный email или пароль', 'danger')
+            flash('Неверный логин или пароль', 'danger')
     return render_template('login.html', title='Вход')
 
 
